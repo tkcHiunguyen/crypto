@@ -1,0 +1,55 @@
+{
+  "name": "crypto",
+  "private": true,
+  "version": "0.0.0",
+  "packageManager": "pnpm@10.29.2",
+  "type": "module",
+  "scripts": {
+    "start": "nodemon --exec \"node --loader ts-node/esm\" index.ts",
+    "dev": "nodemon --exec \"node --loader ts-node/esm\" index.ts",
+    "prestart": "pnpm run build",
+    "build": "pnpm run build:css && tsc && copyfiles views/**/* public/**/* data/patterns/**/* dist",
+    "build:css": "pnpm exec tailwindcss -i ./src/input.css -o ./public/css/style.css --minify",
+    "audit:patterns": "node --loader ts-node/esm scripts/pattern-formula-audit.ts",
+    "telemetry:resolve": "node --loader ts-node/esm scripts/telemetry-resolve-outcomes.ts",
+    "telemetry:export": "node --loader ts-node/esm scripts/telemetry-export.ts",
+    "telemetry:ingest": "node --loader ts-node/esm scripts/telemetry-ingest.ts",
+    "telemetry:weekly-report": "node --loader ts-node/esm scripts/telemetry-weekly-report.ts",
+    "telemetry:report": "node --loader ts-node/esm scripts/telemetry-weekly-report.ts",
+    "telemetry:suggest-rules": "node --loader ts-node/esm scripts/telemetry-suggest-rules.ts",
+    "telemetry:adjust": "node --loader ts-node/esm scripts/telemetry-adjust.ts",
+    "telemetry:pipeline": "pnpm run telemetry:ingest && pnpm run telemetry:weekly-report && pnpm run telemetry:suggest-rules",
+    "build:pkg:bundle": "pnpm run build && pnpm exec esbuild dist/index.js --bundle --platform=node --format=cjs --outfile=dist-pkg/index.js",
+    "build:exe": "pnpm run build:pkg:bundle && pnpm exec pkg . --targets node18-win-x64 --output release/crypto2.exe && copyfiles dist/views/**/* dist/public/**/* dist/data/patterns/**/* release"
+  },
+  "bin": "dist-pkg/index.js",
+  "pkg": {
+    "scripts": [
+      "dist-pkg/**/*.js"
+    ],
+    "assets": []
+  },
+  "dependencies": {
+    "@types/ejs": "^3.1.5",
+    "@types/express": "^5.0.6",
+    "axios": "^1.13.2",
+    "binance-api-node": "^0.13.6",
+    "dotenv": "^17.2.3",
+    "ejs": "^4.0.1",
+    "express": "^5.2.1",
+    "lightweight-charts": "^5.1.0",
+    "nodemon": "^3.1.11",
+    "ts-node": "^10.9.2",
+    "winston": "^3.19.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.9",
+    "autoprefixer": "^10.4.23",
+    "copyfiles": "^2.4.1",
+    "esbuild": "^0.27.3",
+    "pkg": "^5.8.1",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.19",
+    "typescript": "~5.9.3"
+  }
+}

@@ -1,0 +1,541 @@
+﻿<!-- Sidebar -->
+<aside id="sidebar" aria-label="Chart controls"
+    class="w-[312px] max-w-[86vw] shrink-0 border-r border-white/10 bg-slate-950/65 backdrop-blur-xl transition-[width] duration-300 ease-in-out flex flex-col h-full overflow-hidden">
+
+    <div
+        class="sidebar-header sticky top-0 z-10 flex items-center justify-between gap-2 border-b border-white/10 bg-slate-950/80 px-3 py-3 backdrop-blur-xl">
+        <div class="min-w-0">
+            <div class="flex items-center gap-2">
+                <div class="h-2.5 w-2.5 rounded-full bg-emerald-400/95 shadow-[0_0_0_4px_rgba(16,185,129,0.14)]"></div>
+                <div id="sidebarTitle" class="font-semibold tracking-tight text-white/95 text-xs">Market Controls</div>
+            </div>
+            <div id="coinCount" class="mt-0.5 text-[10px] font-semibold text-slate-300">
+                Coins (<%= coins.length %>)
+            </div>
+        </div>
+
+        <button id="sidebarCloseBtn" title="Hide panel" aria-label="Hide tool panel"
+            class="h-8 w-8 rounded-xl border border-white/10 bg-slate-800/55 text-slate-200 hover:bg-slate-700/75 hover:text-white active:scale-[0.98] transition-colors duration-200 flex items-center justify-center">
+            <svg aria-hidden="true" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 6l12 12M18 6L6 18" />
+            </svg>
+        </button>
+    </div>
+
+    <div id="toolPanelStack" class="relative flex-1 overflow-hidden">
+        <section id="panel-market" class="tool-panel is-active" aria-hidden="false">
+            <div id="sidebarScroll" class="panel-scroll flex-1 overflow-y-auto scrollbar-hidden">
+                <div class="panel-block border-b border-white/10 p-3">
+                    <div class="flex gap-2">
+                        <button id="getCoinsBtn"
+                            class="w-full rounded-xl border border-cyan-300/30 bg-cyan-300/15 px-3 py-2.5 text-xs font-semibold text-cyan-100 hover:bg-cyan-300/25 hover:border-cyan-200/40 active:scale-[0.98] transition-colors duration-200 whitespace-nowrap">
+                            Get Coins
+                        </button>
+                    </div>
+
+                    <div class="mt-3 grid grid-cols-2 gap-2">
+                        <button id="selectAllBtn"
+                            class="rounded-xl border border-white/10 bg-slate-800/45 px-2 py-2.5 text-xs font-semibold text-white/90 hover:bg-slate-700/65 hover:border-white/15 active:scale-[0.98] transition-colors duration-200">
+                            Select All
+                        </button>
+                        <button id="clearBtn"
+                            class="rounded-xl border border-white/10 bg-slate-800/45 px-2 py-2.5 text-xs font-semibold text-white/90 hover:bg-slate-700/65 hover:border-white/15 active:scale-[0.98] transition-colors duration-200">
+                            Clear
+                        </button>
+                    </div>
+                </div>
+
+                <div class="panel-block p-3 border-b border-white/10">
+                    <div class="flex items-center justify-between px-1 pb-2">
+                        <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Market</div>
+                        <div class="text-[10px] font-bold uppercase tracking-wider text-slate-500">USDT Perp</div>
+                    </div>
+
+                    <div id="coinList" class="max-h-[320px] overflow-y-auto rounded-xl border border-white/10 bg-slate-900/35 p-1.5">
+                        <% coins.forEach(coin => { %>
+                            <button type="button" data-symbol="<%= coin.symbol %>" aria-pressed="false"
+                                aria-label="Toggle <%= coin.symbol %> chart"
+                                class="coin-item group mb-1.5 last:mb-0 w-full flex items-center justify-between gap-2 rounded-lg border border-white/10
+                           bg-slate-800/35 px-3 py-2.5 cursor-pointer hover:bg-slate-700/55 hover:border-white/20 active:scale-[0.99] transition-colors duration-200">
+                                <div class="flex items-baseline gap-1.5 min-w-0 flex-1 text-left">
+                                    <span class="text-xs font-bold text-white/95">
+                                        <%= coin.baseAsset %>
+                                    </span>
+                                    <span class="text-[10px] font-medium text-slate-400">/ <%= coin.quoteAsset %></span>
+                                </div>
+                                <input type="checkbox" style="pointer-events:none" class="h-3.5 w-3.5 accent-cyan-400 shrink-0" aria-hidden="true" tabindex="-1">
+                            </button>
+                            <% }) %>
+                    </div>
+                </div>
+
+                <div class="panel-block p-3 border-b border-white/10">
+                    <div class="relative" id="intervalWrap">
+                        <label id="intervalFieldLabel" for="interval" class="block text-[10px] uppercase tracking-wider font-semibold text-slate-400 mb-2">Chart Interval</label>
+
+                        <button id="intervalBtn" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="intervalMenu"
+                            class="w-full flex items-center justify-between gap-2 rounded-xl border border-white/15 bg-slate-800/45 px-3 py-2.5
+                         text-xs font-semibold text-white/90 hover:bg-slate-700/70 hover:border-white/25
+                         focus:outline-none focus:ring-2 focus:ring-cyan-300/25 focus:border-cyan-300/50 active:scale-[0.99] transition-colors duration-200">
+                            <span class="flex items-center gap-2">
+                                <span class="inline-flex h-6 w-6 items-center justify-center rounded-lg bg-white/5 text-[10px] font-black text-slate-200">INT</span>
+                                <span id="intervalLabel">15 Minutes</span>
+                            </span>
+
+                            <svg id="intervalChevron" class="h-3.5 w-3.5 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+
+                        <div id="intervalMenu" role="listbox"
+                            class="dock-dropdown absolute left-0 right-0 mb-1 bottom-full origin-bottom z-50 hidden rounded-xl border border-white/10 bg-slate-900/95 backdrop-blur-xl overflow-hidden">
+                            <div class="p-1">
+                                <div id="intervalMenuTitle" class="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-2 py-1">Select interval</div>
+                                <div class="mt-0.5 grid grid-cols-1 gap-0.5">
+                                    <button type="button" class="interval-item text-xs py-2 px-3 rounded-lg" data-value="1m" data-label="1 Minute">1 Minute</button>
+                                    <button type="button" class="interval-item text-xs py-2 px-3 rounded-lg" data-value="5m" data-label="5 Minutes">5 Minutes</button>
+                                    <button type="button" class="interval-item text-xs py-2 px-3 rounded-lg" data-value="15m" data-label="15 Minutes">15 Minutes</button>
+                                    <button type="button" class="interval-item text-xs py-2 px-3 rounded-lg" data-value="1h" data-label="1 Hour">1 Hour</button>
+                                    <button type="button" class="interval-item text-xs py-2 px-3 rounded-lg" data-value="4h" data-label="4 Hours">4 Hours</button>
+                                    <button type="button" class="interval-item text-xs py-2 px-3 rounded-lg" data-value="1d" data-label="1 Day">1 Day</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <select id="interval" class="hidden" name="interval">
+                            <option value="1m">1 Minute</option>
+                            <option value="5m">5 Minutes</option>
+                            <option value="15m" selected>15 Minutes</option>
+                            <option value="1h">1 Hour</option>
+                            <option value="4h">4 Hours</option>
+                            <option value="1d">1 Day</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="panel-block p-3 border-b border-white/10">
+                    <div class="relative" id="limitWrap">
+                        <label id="limitFieldLabel" for="limit" class="block text-[10px] uppercase tracking-wider font-semibold text-slate-400 mb-2">Candle Limit</label>
+
+                        <button id="limitBtn" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="limitMenu"
+                            class="w-full flex items-center justify-between gap-2 rounded-xl border border-white/15 bg-slate-800/45 px-3 py-2.5
+                         text-xs font-semibold text-white/90 hover:bg-slate-700/70 hover:border-white/25
+                         focus:outline-none focus:ring-2 focus:ring-cyan-300/25 focus:border-cyan-300/50 active:scale-[0.99] transition-colors duration-200">
+                            <span class="flex items-center gap-2">
+                                <span class="inline-flex h-6 w-6 items-center justify-center rounded-lg bg-white/5 text-[10px] font-black text-slate-200">LIM</span>
+                                <span id="limitLabel">100 Candles</span>
+                            </span>
+
+                            <svg id="limitChevron" class="h-3.5 w-3.5 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+
+                        <div id="limitMenu" role="listbox"
+                            class="dock-dropdown absolute left-0 right-0 mb-1 bottom-full origin-bottom z-50 hidden rounded-xl border border-white/10 bg-slate-900/95 backdrop-blur-xl overflow-hidden">
+                            <div class="p-1">
+                                <div id="limitMenuTitle" class="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-2 py-1">Select limit</div>
+                                <div class="mt-0.5 grid grid-cols-1 gap-0.5">
+                                    <button type="button" class="limit-item text-xs py-2 px-3 rounded-lg" data-value="50" data-label="50 Candles">50 Candles</button>
+                                    <button type="button" class="limit-item text-xs py-2 px-3 rounded-lg" data-value="100" data-label="100 Candles">100 Candles</button>
+                                    <button type="button" class="limit-item text-xs py-2 px-3 rounded-lg" data-value="200" data-label="200 Candles">200 Candles</button>
+                                    <button type="button" class="limit-item text-xs py-2 px-3 rounded-lg" data-value="500" data-label="500 Candles">500 Candles</button>
+                                    <button type="button" class="limit-item text-xs py-2 px-3 rounded-lg" data-value="1000" data-label="1000 Candles">1000 Candles</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <select id="limit" class="hidden" name="limit">
+                            <option value="50">50 Candles</option>
+                            <option value="100" selected>100 Candles</option>
+                            <option value="200">200 Candles</option>
+                            <option value="500">500 Candles</option>
+                            <option value="1000">1000 Candles</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="panel-block p-3">
+                    <button id="renderBtn" class="w-full rounded-xl border border-emerald-300/40 bg-emerald-300/90 px-3 py-2.5 text-xs font-extrabold text-slate-900
+                        hover:bg-emerald-200 hover:border-emerald-200/60 active:scale-[0.99] transition-colors duration-200">
+                        Render Charts
+                    </button>
+
+                    <div id="marketTipText" class="mt-2 text-[10px] text-slate-400">Tip: use the left tool dock to reopen this panel.</div>
+                </div>
+            </div>
+        </section>
+
+        <section id="panel-tools" class="tool-panel hidden overflow-y-auto scrollbar-hidden p-3" aria-hidden="true">
+            <div class="tool-module tool-module-intro rounded-xl border border-white/10 bg-slate-900/45 p-3">
+                <div class="text-xs font-semibold text-slate-200">Filter Dock</div>
+                <p class="mt-1 text-[11px] text-slate-400">Tap icon to edit. Active filters glow. Use x to clear.</p>
+            </div>
+
+            <div id="filterQuickDock" class="filter-quick-dock mt-3" role="group" aria-label="Quick filter controls">
+                <div class="filter-quick-card" data-filter-target="liquidity" data-applied="false" data-open="false">
+                    <button type="button" class="filter-quick-btn" data-filter-toggle="liquidity"
+                        aria-controls="filterModule-liquidity" aria-expanded="false">
+                        <span class="filter-quick-glyph">LQ</span>
+                        <span class="filter-quick-copy">
+                            <span class="filter-quick-name">Liquidity</span>
+                            <span id="quickFilterValue-liquidity" class="filter-quick-value">Off</span>
+                        </span>
+                    </button>
+                    <button type="button" class="filter-quick-clear" data-filter-clear="liquidity"
+                        aria-label="Clear liquidity filter" title="Clear liquidity filter">x</button>
+                </div>
+
+                <div class="filter-quick-card" data-filter-target="funding" data-applied="false" data-open="false">
+                    <button type="button" class="filter-quick-btn" data-filter-toggle="funding"
+                        aria-controls="filterModule-funding" aria-expanded="false">
+                        <span class="filter-quick-glyph">FR</span>
+                        <span class="filter-quick-copy">
+                            <span class="filter-quick-name">Funding</span>
+                            <span id="quickFilterValue-funding" class="filter-quick-value">Off</span>
+                        </span>
+                    </button>
+                    <button type="button" class="filter-quick-clear" data-filter-clear="funding"
+                        aria-label="Clear funding filter" title="Clear funding filter">x</button>
+                </div>
+
+                <div class="filter-quick-card" data-filter-target="oi" data-applied="false" data-open="false">
+                    <button type="button" class="filter-quick-btn" data-filter-toggle="oi"
+                        aria-controls="filterModule-oi" aria-expanded="false">
+                        <span class="filter-quick-glyph">OI</span>
+                        <span class="filter-quick-copy">
+                            <span class="filter-quick-name">Open Interest</span>
+                            <span id="quickFilterValue-oi" class="filter-quick-value">Off</span>
+                        </span>
+                    </button>
+                    <button type="button" class="filter-quick-clear" data-filter-clear="oi"
+                        aria-label="Clear open interest filter" title="Clear open interest filter">x</button>
+                </div>
+
+                <div class="filter-quick-card" data-filter-target="pattern" data-applied="false" data-open="false">
+                    <button type="button" class="filter-quick-btn" data-filter-toggle="pattern"
+                        aria-controls="filterModule-pattern" aria-expanded="false">
+                        <span class="filter-quick-glyph">PT</span>
+                        <span class="filter-quick-copy">
+                            <span class="filter-quick-name">Pattern</span>
+                            <span id="quickFilterValue-pattern" class="filter-quick-value">Off</span>
+                        </span>
+                    </button>
+                    <button type="button" class="filter-quick-clear" data-filter-clear="pattern"
+                        aria-label="Clear pattern filter" title="Clear pattern filter">x</button>
+                </div>
+            </div>
+
+            <div id="filterModule-liquidity" data-filter-module="liquidity"
+                class="tool-module tool-filter-module mt-3 rounded-xl border border-white/10 bg-slate-900/35 p-3 hidden"
+                aria-hidden="true" hidden>
+                <div class="mb-2 flex items-center justify-between gap-2">
+                    <div class="text-[10px] uppercase tracking-wider font-semibold text-slate-400">Liquidity Filter</div>
+                    <button id="refreshVolumeSnapshotBtn" type="button"
+                        class="rounded-md border border-white/10 bg-slate-800/45 px-2 py-1 text-[10px] font-semibold text-slate-200 hover:bg-slate-700/65 hover:border-white/15 active:scale-[0.98] transition-colors duration-200">
+                        Refresh 24h snapshot
+                    </button>
+                </div>
+                <label for="minVolumeInput" class="block text-[10px] font-semibold text-slate-400 mb-1.5">
+                    Min 24h Volume (USDT)
+                </label>
+                <input id="minVolumeInput" name="minVolumeInput" type="text" inputmode="decimal" autocomplete="off" spellcheck="false"
+                    placeholder="e.g. 5m or 5,000,000…"
+                    class="filter-input volume-input w-full rounded-lg border border-white/15 bg-slate-800/60 px-2.5 py-2 text-xs text-slate-100 outline-none focus:border-cyan-300/55 focus:ring-2 focus:ring-cyan-300/20" />
+                <p class="mt-1 text-[10px] text-slate-500">Supports suffix: <span class="font-semibold text-slate-400">k</span>, <span class="font-semibold text-slate-400">m</span>, <span class="font-semibold text-slate-400">b</span></p>
+
+                <div id="volumePresetChips" class="mt-2 grid grid-cols-3 gap-1.5">
+                    <button type="button" class="volume-preset-chip" data-volume-threshold="0" aria-pressed="false">Off</button>
+                    <button type="button" class="volume-preset-chip" data-volume-threshold="1000000" aria-pressed="false">1M</button>
+                    <button type="button" class="volume-preset-chip" data-volume-threshold="5000000" aria-pressed="false">5M</button>
+                    <button type="button" class="volume-preset-chip" data-volume-threshold="20000000" aria-pressed="false">20M</button>
+                    <button type="button" class="volume-preset-chip" data-volume-threshold="50000000" aria-pressed="false">50M</button>
+                    <button type="button" class="volume-preset-chip" data-volume-threshold="100000000" aria-pressed="false">100M</button>
+                </div>
+
+                <div class="volume-preview mt-2 text-[10px]" id="volumePreviewState" data-tone="neutral" aria-live="polite">
+                    Preview: load symbols to estimate matched contracts
+                </div>
+
+                <div class="mt-2 grid grid-cols-2 gap-2">
+                    <button id="applyVolumeFilterBtn" type="button"
+                        class="rounded-lg border border-cyan-300/30 bg-cyan-300/15 px-2 py-2 text-xs font-semibold text-cyan-100 hover:bg-cyan-300/25 hover:border-cyan-200/40 active:scale-[0.98] transition-colors duration-200">
+                        Apply & Render
+                    </button>
+                    <button id="resetVolumeFilterBtn" type="button"
+                        class="rounded-lg border border-white/10 bg-slate-800/45 px-2 py-2 text-xs font-semibold text-white/90 hover:bg-slate-700/65 hover:border-white/15 active:scale-[0.98] transition-colors duration-200">
+                        Reset
+                    </button>
+                </div>
+
+                <div class="mt-2 text-[10px] text-slate-400" id="volumeFilterState" aria-live="polite">
+                    Active filter: off
+                </div>
+                <div class="mt-1 text-[10px] text-slate-500" id="volumeSnapshotMeta" aria-live="polite">
+                    Snapshot: not loaded
+                </div>
+            </div>
+
+            <div id="filterModule-funding" data-filter-module="funding"
+                class="tool-module tool-filter-module mt-3 rounded-xl border border-white/10 bg-slate-900/35 p-3 hidden"
+                aria-hidden="true" hidden>
+                <div class="mb-2 flex items-center justify-between gap-2">
+                    <div class="text-[10px] uppercase tracking-wider font-semibold text-slate-400">Funding Filter</div>
+                    <button id="refreshFundingSnapshotBtn" type="button"
+                        class="rounded-md border border-white/10 bg-slate-800/45 px-2 py-1 text-[10px] font-semibold text-slate-200 hover:bg-slate-700/65 hover:border-white/15 active:scale-[0.98] transition-colors duration-200">
+                        Refresh funding
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label for="minFundingRateInput" class="block text-[10px] font-semibold text-slate-400 mb-1.5">
+                            Min Funding (%)
+                        </label>
+                        <input id="minFundingRateInput" name="minFundingRateInput" type="text" inputmode="decimal" autocomplete="off" spellcheck="false"
+                            placeholder="-0.01…"
+                            class="filter-input w-full rounded-lg border border-white/15 bg-slate-800/60 px-2.5 py-2 text-xs text-slate-100 outline-none focus:border-cyan-300/55 focus:ring-2 focus:ring-cyan-300/20" />
+                    </div>
+                    <div>
+                        <label for="maxFundingRateInput" class="block text-[10px] font-semibold text-slate-400 mb-1.5">
+                            Max Funding (%)
+                        </label>
+                        <input id="maxFundingRateInput" name="maxFundingRateInput" type="text" inputmode="decimal" autocomplete="off" spellcheck="false"
+                            placeholder="0.01…"
+                            class="filter-input w-full rounded-lg border border-white/15 bg-slate-800/60 px-2.5 py-2 text-xs text-slate-100 outline-none focus:border-cyan-300/55 focus:ring-2 focus:ring-cyan-300/20" />
+                    </div>
+                </div>
+
+                <p class="mt-1 text-[10px] text-slate-500">
+                    Value is percent per funding interval (e.g. <span class="font-semibold text-slate-400">0.01</span> = 0.01%).
+                </p>
+
+                <div id="fundingPresetChips" class="mt-2 grid grid-cols-3 gap-1.5">
+                    <button type="button" class="funding-preset-chip" data-funding-min="" data-funding-max="" aria-pressed="false">Off</button>
+                    <button type="button" class="funding-preset-chip" data-funding-min="-0.01" data-funding-max="0.01" aria-pressed="false">±0.01%</button>
+                    <button type="button" class="funding-preset-chip" data-funding-min="-0.03" data-funding-max="0.03" aria-pressed="false">±0.03%</button>
+                    <button type="button" class="funding-preset-chip" data-funding-min="-0.05" data-funding-max="0.05" aria-pressed="false">±0.05%</button>
+                    <button type="button" class="funding-preset-chip" data-funding-min="0.03" data-funding-max="" aria-pressed="false">Crowded Long</button>
+                    <button type="button" class="funding-preset-chip" data-funding-min="" data-funding-max="-0.03" aria-pressed="false">Crowded Short</button>
+                </div>
+
+                <div class="volume-preview mt-2 text-[10px]" id="fundingPreviewState" data-tone="neutral" aria-live="polite">
+                    Preview: set a range to estimate matched symbols
+                </div>
+
+                <div class="mt-2 grid grid-cols-3 gap-1.5">
+                    <div class="funding-stat-card">
+                        <div class="funding-stat-label">Positive</div>
+                        <div class="funding-stat-value" id="fundingPositiveStat">-</div>
+                    </div>
+                    <div class="funding-stat-card">
+                        <div class="funding-stat-label">Negative</div>
+                        <div class="funding-stat-value" id="fundingNegativeStat">-</div>
+                    </div>
+                    <div class="funding-stat-card">
+                        <div class="funding-stat-label">|Rate| >= 0.03%</div>
+                        <div class="funding-stat-value" id="fundingExtremeStat">-</div>
+                    </div>
+                </div>
+
+                <div class="mt-2 grid grid-cols-2 gap-2">
+                    <button id="applyFundingFilterBtn" type="button"
+                        class="rounded-lg border border-cyan-300/30 bg-cyan-300/15 px-2 py-2 text-xs font-semibold text-cyan-100 hover:bg-cyan-300/25 hover:border-cyan-200/40 active:scale-[0.98] transition-colors duration-200">
+                        Apply & Render
+                    </button>
+                    <button id="resetFundingFilterBtn" type="button"
+                        class="rounded-lg border border-white/10 bg-slate-800/45 px-2 py-2 text-xs font-semibold text-white/90 hover:bg-slate-700/65 hover:border-white/15 active:scale-[0.98] transition-colors duration-200">
+                        Reset
+                    </button>
+                </div>
+
+                <div class="mt-2 text-[10px] text-slate-400" id="fundingFilterState" aria-live="polite">
+                    Funding filter: off
+                </div>
+                <div class="mt-1 text-[10px] text-slate-500" id="fundingSnapshotMeta" aria-live="polite">
+                    Snapshot: not loaded
+                </div>
+            </div>
+
+            <div id="filterModule-oi" data-filter-module="oi"
+                class="tool-module tool-filter-module mt-3 rounded-xl border border-white/10 bg-slate-900/35 p-3 hidden"
+                aria-hidden="true" hidden>
+                <div class="mb-2 flex items-center justify-between gap-2">
+                    <div class="text-[10px] uppercase tracking-wider font-semibold text-slate-400">Open Interest Filter</div>
+                    <button id="refreshOiSnapshotBtn" type="button"
+                        class="rounded-md border border-white/10 bg-slate-800/45 px-2 py-1 text-[10px] font-semibold text-slate-200 hover:bg-slate-700/65 hover:border-white/15 active:scale-[0.98] transition-colors duration-200">
+                        Refresh OI
+                    </button>
+                </div>
+
+                <label for="minOiInput" class="block text-[10px] font-semibold text-slate-400 mb-1.5">
+                    Min OI Notional (USDT)
+                </label>
+                <input id="minOiInput" name="minOiInput" type="text" inputmode="decimal" autocomplete="off" spellcheck="false"
+                    placeholder="e.g. 50m or 50,000,000…"
+                    class="filter-input w-full rounded-lg border border-white/15 bg-slate-800/60 px-2.5 py-2 text-xs text-slate-100 outline-none focus:border-cyan-300/55 focus:ring-2 focus:ring-cyan-300/20" />
+                <p class="mt-1 text-[10px] text-slate-500">Supports suffix: <span class="font-semibold text-slate-400">k</span>, <span class="font-semibold text-slate-400">m</span>, <span class="font-semibold text-slate-400">b</span></p>
+
+                <div id="oiPresetChips" class="mt-2 grid grid-cols-3 gap-1.5">
+                    <button type="button" class="volume-preset-chip" data-oi-threshold="0" aria-pressed="false">Off</button>
+                    <button type="button" class="volume-preset-chip" data-oi-threshold="10000000" aria-pressed="false">10M</button>
+                    <button type="button" class="volume-preset-chip" data-oi-threshold="50000000" aria-pressed="false">50M</button>
+                    <button type="button" class="volume-preset-chip" data-oi-threshold="100000000" aria-pressed="false">100M</button>
+                    <button type="button" class="volume-preset-chip" data-oi-threshold="500000000" aria-pressed="false">500M</button>
+                    <button type="button" class="volume-preset-chip" data-oi-threshold="1000000000" aria-pressed="false">1B</button>
+                </div>
+
+                <div class="volume-preview mt-2 text-[10px]" id="oiPreviewState" data-tone="neutral" aria-live="polite">
+                    Preview: set a threshold to estimate matched symbols
+                </div>
+
+                <div class="mt-2 grid grid-cols-2 gap-2">
+                    <button id="applyOiFilterBtn" type="button"
+                        class="rounded-lg border border-cyan-300/30 bg-cyan-300/15 px-2 py-2 text-xs font-semibold text-cyan-100 hover:bg-cyan-300/25 hover:border-cyan-200/40 active:scale-[0.98] transition-colors duration-200">
+                        Apply & Render
+                    </button>
+                    <button id="resetOiFilterBtn" type="button"
+                        class="rounded-lg border border-white/10 bg-slate-800/45 px-2 py-2 text-xs font-semibold text-white/90 hover:bg-slate-700/65 hover:border-white/15 active:scale-[0.98] transition-colors duration-200">
+                        Reset
+                    </button>
+                </div>
+
+                <div class="mt-2 text-[10px] text-slate-400" id="oiFilterState" aria-live="polite">
+                    OI filter: off
+                </div>
+                <div class="mt-1 text-[10px] text-slate-500" id="oiSnapshotMeta" aria-live="polite">
+                    Snapshot: not loaded
+                </div>
+            </div>
+
+            <div id="filterModule-pattern" data-filter-module="pattern"
+                class="tool-module tool-filter-module mt-3 rounded-xl border border-white/10 bg-slate-900/35 p-3 hidden"
+                aria-hidden="true" hidden>
+                <div class="mb-2 flex items-center justify-between gap-2">
+                    <div class="text-[10px] uppercase tracking-wider font-semibold text-slate-400">Candlestick Pattern</div>
+                    <button id="refreshPatternScanBtn" type="button"
+                        class="rounded-md border border-white/10 bg-slate-800/45 px-2 py-1 text-[10px] font-semibold text-slate-200 hover:bg-slate-700/65 hover:border-white/15 active:scale-[0.98] transition-colors duration-200">
+                        Refresh scan
+                    </button>
+                </div>
+
+                <div id="patternCategoryChips" class="grid grid-cols-4 gap-1.5">
+                    <button type="button" class="pattern-category-chip" data-pattern-category="All" aria-pressed="true">All</button>
+                    <button type="button" class="pattern-category-chip" data-pattern-category="Bullish" aria-pressed="false">Bullish</button>
+                    <button type="button" class="pattern-category-chip" data-pattern-category="Bearish" aria-pressed="false">Bearish</button>
+                    <button type="button" class="pattern-category-chip" data-pattern-category="Neutral" aria-pressed="false">Neutral</button>
+                </div>
+
+                <div id="patternIconGrid" class="pattern-icon-grid mt-2" role="listbox" aria-label="Candlestick pattern icons">
+                    <div class="pattern-grid-empty">Loading pattern icons…</div>
+                </div>
+
+                <select id="patternSelect" class="hidden" aria-hidden="true" tabindex="-1">
+                    <option value="">Off</option>
+                </select>
+                <p class="mt-1 text-[10px] text-slate-500" id="patternSelectionHint" aria-live="polite">
+                    Select one pattern icon to filter symbols.
+                </p>
+
+                <div class="mt-2 grid grid-cols-2 gap-2">
+                    <button id="applyPatternFilterBtn" type="button"
+                        class="rounded-lg border border-cyan-300/30 bg-cyan-300/15 px-2 py-2 text-xs font-semibold text-cyan-100 hover:bg-cyan-300/25 hover:border-cyan-200/40 active:scale-[0.98] transition-colors duration-200">
+                        Apply selected
+                    </button>
+                    <button id="resetPatternFilterBtn" type="button"
+                        class="rounded-lg border border-white/10 bg-slate-800/45 px-2 py-2 text-xs font-semibold text-white/90 hover:bg-slate-700/65 hover:border-white/15 active:scale-[0.98] transition-colors duration-200">
+                        Reset
+                    </button>
+                </div>
+
+                <div class="mt-2 text-[10px] text-slate-400" id="patternFilterState" aria-live="polite">
+                    Pattern filter: off
+                </div>
+                <div class="mt-1 text-[10px] text-slate-500" id="patternSnapshotMeta" aria-live="polite">
+                    Snapshot: not scanned
+                </div>
+            </div>
+        </section>
+
+        <section id="panel-layout" class="tool-panel hidden overflow-y-auto scrollbar-hidden p-3" aria-hidden="true">
+            <div class="tool-module rounded-xl border border-white/10 bg-slate-900/45 p-3">
+                <div id="settingsIntroTitle" class="text-xs font-semibold text-slate-200">Quick Settings</div>
+                <p id="settingsIntroDesc" class="mt-1 text-[11px] text-slate-400">Light settings for better readability. Changes are saved on this device.</p>
+            </div>
+
+            <div class="tool-module mt-3 rounded-xl border border-white/10 bg-slate-900/35 p-3">
+                <div id="settingsDisplayLabel" class="text-[10px] uppercase tracking-wider text-slate-500">Display</div>
+
+                <label class="settings-toggle mt-2">
+                    <input id="settingCompactCards" type="checkbox" class="settings-toggle-input" />
+                    <span class="settings-toggle-copy">
+                        <span id="settingsCompactTitle" class="settings-toggle-title">Compact charts</span>
+                        <span id="settingsCompactDesc" class="settings-toggle-note">Use smaller chart cards to fit more content.</span>
+                    </span>
+                </label>
+
+                <label class="settings-toggle mt-2">
+                    <input id="settingCalmBackground" type="checkbox" class="settings-toggle-input" />
+                    <span class="settings-toggle-copy">
+                        <span id="settingsCalmTitle" class="settings-toggle-title">Calm background</span>
+                        <span id="settingsCalmDesc" class="settings-toggle-note">Reduce glow and grid noise in the workspace.</span>
+                    </span>
+                </label>
+
+                <label class="settings-toggle mt-2">
+                    <input id="settingReduceMotion" type="checkbox" class="settings-toggle-input" />
+                    <span class="settings-toggle-copy">
+                        <span id="settingsMotionTitle" class="settings-toggle-title">Reduce motion</span>
+                        <span id="settingsMotionDesc" class="settings-toggle-note">Disable most transitions and animations.</span>
+                    </span>
+                </label>
+            </div>
+
+            <div class="tool-module mt-3 rounded-xl border border-white/10 bg-slate-900/35 p-3">
+                <label id="settingLanguageLabel" for="settingLanguage"
+                    class="block text-[10px] uppercase tracking-wider font-semibold text-slate-400 mb-1.5">
+                    Language
+                </label>
+                <select id="settingLanguage"
+                    class="fancy-select settings-select w-full rounded-lg border border-white/15 bg-slate-800/60 px-2.5 py-2 text-xs text-slate-100 outline-none focus:border-cyan-300/55 focus:ring-2 focus:ring-cyan-300/20">
+                    <option value="en">English</option>
+                    <option value="vi">Tieng Viet</option>
+                </select>
+
+                <label id="settingThemeLabel" for="settingTheme"
+                    class="mt-3 block text-[10px] uppercase tracking-wider font-semibold text-slate-400 mb-1.5">
+                    Accent Theme
+                </label>
+                <select id="settingTheme"
+                    class="fancy-select settings-select w-full rounded-lg border border-white/15 bg-slate-800/60 px-2.5 py-2 text-xs text-slate-100 outline-none focus:border-cyan-300/55 focus:ring-2 focus:ring-cyan-300/20">
+                    <option value="cyan">Neon Cyan</option>
+                    <option value="amber">Solar Amber</option>
+                    <option value="emerald">Neo Emerald</option>
+                </select>
+            </div>
+
+            <div class="tool-module mt-3 rounded-xl border border-white/10 bg-slate-900/35 p-3">
+                <label id="settingChartsPerPageLabel" for="settingChartsPerPage" class="block text-[10px] uppercase tracking-wider font-semibold text-slate-400 mb-1.5">
+                    Charts per page
+                </label>
+                <select id="settingChartsPerPage"
+                    class="fancy-select settings-select w-full rounded-lg border border-white/15 bg-slate-800/60 px-2.5 py-2 text-xs text-slate-100 outline-none focus:border-cyan-300/55 focus:ring-2 focus:ring-cyan-300/20">
+                    <option value="24">24 charts</option>
+                    <option value="36">36 charts</option>
+                    <option value="52">52 charts</option>
+                    <option value="64">64 charts</option>
+                </select>
+
+                <p id="settingsSummary" class="mt-2 text-[10px] text-slate-400" aria-live="polite">
+                    Settings ready
+                </p>
+
+                <button id="settingsResetBtn" type="button"
+                    class="mt-2 w-full rounded-lg border border-white/10 bg-slate-800/45 px-2 py-2 text-xs font-semibold text-white/90 hover:bg-slate-700/65 hover:border-white/15 active:scale-[0.98] transition-colors duration-200">
+                    Reset to defaults
+                </button>
+            </div>
+        </section>
+    </div>
+</aside>
+
